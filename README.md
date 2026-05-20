@@ -1,2 +1,0 @@
-# bakhtiar.github.io
-Webpage
