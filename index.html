@@ -1,64 +1,85 @@
-# index.html
-
-Save this as `index.html`
-
-```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Adoption Dashboard</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>
+    AI Adoption Dashboard
+  </title>
+
+  <!-- Tailwind -->
 
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- PapaParse -->
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font -->
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
 
   <style>
-    * {
-      font-family: 'Inter', sans-serif;
-    }
 
     body {
-      background: #f3f1ed;
-      color: #111827;
+      font-family: 'Inter', sans-serif;
+      background: #071226;
+      color: white;
     }
 
-    .main-card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 24px;
+    .card-bg {
+      background: #0b1730;
     }
 
-    .kpi-card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 20px;
-    }
   </style>
+
 </head>
+
 <body>
 
-  <!-- HEADER -->
+  <!-- HERO -->
 
-  <section class="bg-[#111111] text-white py-10">
+  <section class="border-b border-white/10">
 
-    <div class="max-w-5xl mx-auto px-4 text-center">
+    <div class="max-w-5xl mx-auto px-4 py-8">
 
-      <p class="uppercase tracking-[5px] text-[11px] text-gray-400">
-        DAILY REPORT
-      </p>
+      <div class="text-center">
 
-      <h1 class="text-3xl md:text-5xl font-bold mt-4 leading-tight">
-        Team wise AI Adoption Performance
-      </h1>
+        <p
+          class="uppercase tracking-[6px] text-[11px] text-cyan-400"
+        >
 
-      <p class="text-gray-400 text-sm mt-4">
-        How each team is integrating AI into daily work
-      </p>
+          DAILY REPORT
+
+        </p>
+
+        <h1
+          class="text-3xl md:text-5xl font-bold mt-4"
+        >
+
+          Team AI Adoption Dashboard
+
+        </h1>
+
+        <p
+          class="text-slate-400 text-sm mt-4"
+        >
+
+          Live operational AI activity monitoring
+
+        </p>
+
+      </div>
 
     </div>
 
@@ -73,12 +94,12 @@ Save this as `index.html`
       <input
         type="date"
         id="dateFilter"
-        class="bg-white border border-gray-300 rounded-2xl px-4 py-3 text-sm outline-none"
+        class="card-bg border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
       >
 
       <select
         id="teamFilter"
-        class="bg-white border border-gray-300 rounded-2xl px-4 py-3 text-sm outline-none"
+        class="card-bg border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
       >
 
         <option value="">
@@ -88,10 +109,12 @@ Save this as `index.html`
       </select>
 
       <button
-        id="generateBtn"
-        class="bg-black text-white rounded-2xl py-3 text-sm font-semibold hover:bg-gray-800 transition"
+        onclick="applyFilters()"
+        class="bg-cyan-500 hover:bg-cyan-400 text-black rounded-2xl py-3 text-sm font-bold transition"
       >
+
         Generate Report
+
       </button>
 
     </div>
@@ -112,450 +135,8 @@ Save this as `index.html`
     class="max-w-5xl mx-auto px-4 mt-5 pb-20"
   ></section>
 
-  <script>
-
-    const SHEET_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRzKkepmT24n2sOcOcDfhA5HigPVSVnYneHm8Oe7luoT61GsqTwYcik9CiBn3eytOo0ZKUv5WRgI_dB/pub?gid=0&single=true&output=csv";
-
-    let allData = [];
-
-    async function loadData() {
-
-      Papa.parse(
-        SHEET_URL + "&t=" + new Date().getTime(),
-        {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-
-          complete: function(results) {
-
-            console.log(results.data);
-
-            allData = results.data.filter(row => row.team);
-
-            populateTeams();
-
-            setLatestDate();
-
-            applyFilters();
-          }
-        }
-      );
-    }
-
-    function populateTeams() {
-
-      const dropdown =
-        document.getElementById("teamFilter");
-
-      dropdown.innerHTML =
-        `<option value="">All Teams</option>`;
-
-      const teams = [
-        ...new Set(allData.map(x => x.team))
-      ];
-
-      teams.forEach(team => {
-
-        dropdown.innerHTML += `
-          <option value="${team}">
-            ${team}
-          </option>
-        `;
-      });
-    }
-
-    function setLatestDate() {
-
-      const dates = [
-        ...new Set(
-          allData.map(x => x.report_date)
-        )
-      ];
-
-      dates.sort();
-
-      const latestDate =
-        dates[dates.length - 1];
-
-      if (latestDate) {
-
-        document.getElementById(
-          "dateFilter"
-        ).value = formatDate(latestDate);
-      }
-    }
-
-    function formatDate(dateString) {
-
-      if (!dateString) return "";
-
-      const date = new Date(dateString);
-
-      return date.toISOString().split("T")[0];
-    }
-
-    function applyFilters() {
-
-      const selectedDate =
-        document.getElementById("dateFilter").value;
-
-      const selectedTeam =
-        document.getElementById("teamFilter").value;
-
-      const filtered = allData.filter(item => {
-
-        const rowDate =
-          formatDate(item.report_date);
-
-        return (
-          (!selectedDate || rowDate === selectedDate)
-          &&
-          (!selectedTeam || item.team === selectedTeam)
-        );
-      });
-
-      renderDashboard(filtered);
-    }
-
-    function renderDashboard(data) {
-
-      renderKPI(data);
-
-      renderCards(data);
-    }
-
-    function renderKPI(data) {
-
-      const container =
-        document.getElementById("kpiContainer");
-
-      const totalTeams = data.length;
-
-      let totalAI = 0;
-
-      data.forEach(item => {
-        totalAI += Number(item.ai_percentage || 0);
-      });
-
-      const avgAI =
-        totalTeams > 0
-        ? Math.round(totalAI / totalTeams)
-        : 0;
-
-      const totalTasks = countTasks(data);
-
-      container.innerHTML = `
-
-        ${createKPI(
-          "Teams",
-          totalTeams,
-          "👥"
-        )}
-
-        ${createKPI(
-          "AI Adoption",
-          avgAI + "%",
-          "🤖"
-        )}
-
-        ${createKPI(
-          "Tasks",
-          totalTasks,
-          "✅"
-        )}
-
-        ${createKPI(
-          "Date",
-          data[0]?.report_date || "-",
-          "📅"
-        )}
-
-      `;
-    }
-
-    function createKPI(title, value, icon) {
-
-      return `
-
-        <div class="kpi-card p-4">
-
-          <div class="flex justify-between items-center">
-
-            <div>
-
-              <p class="text-[10px] uppercase tracking-[4px] text-gray-400">
-                ${title}
-              </p>
-
-              <h2 class="text-2xl font-bold mt-2">
-                ${value}
-              </h2>
-
-            </div>
-
-            <div class="text-2xl">
-              ${icon}
-            </div>
-
-          </div>
-
-        </div>
-      `;
-    }
-
-    function countTasks(data) {
-
-      let count = 0;
-
-      data.forEach(item => {
-
-        Object.keys(item).forEach(key => {
-
-          if (
-            key.startsWith("ai_work_")
-            &&
-            item[key]
-          ) {
-            count++;
-          }
-        });
-      });
-
-      return count;
-    }
-
-    function renderCards(data) {
-
-      const container =
-        document.getElementById("reportContainer");
-
-      container.innerHTML = "";
-
-      if (data.length === 0) {
-
-        container.innerHTML = `
-
-          <div class="main-card p-10 text-center">
-
-            <h2 class="text-2xl font-bold">
-              No Report Found
-            </h2>
-
-          </div>
-        `;
-
-        return;
-      }
-
-      data.forEach(item => {
-
-        container.innerHTML += `
-
-          <div class="main-card p-6 mb-5">
-
-            <!-- HEADER -->
-
-            <div class="flex justify-between items-start gap-4 flex-wrap">
-
-              <div class="flex items-center gap-4">
-
-                <div
-                  class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-xl"
-                >
-                  ${item.icon || '📊'}
-                </div>
-
-                <div>
-
-                  <h2 class="text-2xl font-bold leading-none">
-                    ${item.team}
-                  </h2>
-
-                  <p class="text-gray-400 text-sm mt-2">
-                    ${item.category || ''}
-                  </p>
-
-                </div>
-
-              </div>
-
-              <div
-                class="bg-[#d9eaf7] text-[#2563eb] text-xs px-4 py-2 rounded-full font-semibold"
-              >
-                ${item.ai_percentage}% AI ·
-                ${item.manual_percentage}% Manual
-              </div>
-
-            </div>
-
-            <!-- BAR -->
-
-            <div class="mt-6">
-
-              <div
-                class="w-full h-[10px] rounded-full overflow-hidden flex bg-gray-200"
-              >
-
-                <div
-                  class="bg-[#27c281]"
-                  style="width:${item.ai_percentage}%"
-                ></div>
-
-                <div
-                  class="bg-[#8b5cf6]"
-                  style="width:${item.manual_percentage}%"
-                ></div>
-
-              </div>
-
-              <div
-                class="flex justify-between mt-2 text-xs font-semibold"
-              >
-
-                <span class="text-[#27c281]">
-                  ${item.ai_percentage}% AI
-                </span>
-
-                <span class="text-[#8b5cf6]">
-                  ${item.manual_percentage}% manual
-                </span>
-
-              </div>
-
-            </div>
-
-            <!-- TASKS -->
-
-            <div class="mt-6">
-
-              <h3
-                class="uppercase text-[11px] tracking-[3px] text-gray-400 font-bold"
-              >
-                AI WORK
-              </h3>
-
-              <div class="mt-4 space-y-3">
-
-                ${generateTasks(item, 'ai_work_')}
-
-              </div>
-
-            </div>
-
-            <!-- MANUAL -->
-
-            <div class="mt-6">
-
-              <h3
-                class="uppercase text-[11px] tracking-[3px] text-gray-400 font-bold"
-              >
-                WHY ${item.manual_percentage}% WAS MANUAL
-              </h3>
-
-              <div class="mt-4 space-y-3">
-
-                ${generateManualTasks(item)}
-
-              </div>
-
-            </div>
-
-            <!-- NOTE -->
-
-            <div
-              class="mt-6 bg-[#fff8e7] border border-[#f4d03f] rounded-2xl p-4"
-            >
-
-              <p
-                class="text-[#8a6d3b] text-sm leading-relaxed"
-              >
-                💡 ${item.note || ''}
-              </p>
-
-            </div>
-
-          </div>
-        `;
-      });
-    }
-
-    function generateTasks(item, prefix) {
-
-      let html = "";
-
-      Object.keys(item).forEach(key => {
-
-        if (
-          key.startsWith(prefix)
-          &&
-          item[key]
-        ) {
-
-          html += `
-
-            <div class="flex gap-3">
-
-              <div class="text-[#27c281] font-bold">
-                ✓
-              </div>
-
-              <div class="text-[15px] leading-relaxed">
-                ${item[key]}
-              </div>
-
-            </div>
-          `;
-        }
-      });
-
-      return html;
-    }
-
-    function generateManualTasks(item) {
-
-      let html = "";
-
-      Object.keys(item).forEach(key => {
-
-        if (
-          key.startsWith("manual_work_")
-          &&
-          item[key]
-        ) {
-
-          html += `
-
-            <div class="flex gap-3">
-
-              <div class="text-gray-400">
-                •
-              </div>
-
-              <div class="text-[15px] leading-relaxed">
-                ${item[key]}
-              </div>
-
-            </div>
-          `;
-        }
-      });
-
-      return html;
-    }
-
-    document
-      .getElementById("generateBtn")
-      .addEventListener(
-        "click",
-        applyFilters
-      );
-
-    loadData();
-
-  </script>
+  <script src="app.js?v=10"></script>
 
 </body>
+
 </html>
-```
