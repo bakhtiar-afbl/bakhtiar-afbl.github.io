@@ -3,45 +3,40 @@ const SHEET_URL =
 
 let allData = [];
 
-async function loadData() {
+Papa.parse(SHEET_URL, {
 
-  Papa.parse(SHEET_URL, {
+  download: true,
 
-    download: true,
+  header: true,
 
-    header: true,
+  skipEmptyLines: true,
 
-    skipEmptyLines: true,
+  complete: function(results) {
 
-    complete: function(results) {
+    allData = results.data.filter(
+      x => x.team
+    );
 
-      allData = results.data.filter(
-        x => x.team
-      );
+    populateTeams();
 
-      populateTeams();
+    setDefaultDate();
 
-      renderInitialDate();
+    applyFilters();
+  }
+});
 
-      applyFilters();
-    }
-  });
-}
+function setDefaultDate() {
 
-function renderInitialDate() {
-
-  const uniqueDates =
+  const dates =
     [...new Set(
       allData.map(x => x.report_date)
     )];
 
-  if (uniqueDates.length > 0) {
+  if (dates.length > 0) {
 
     document.getElementById(
       "dateFilter"
-    ).value = formatDate(
-      uniqueDates[0]
-    );
+    ).value = formatDate(dates[0]);
   }
 }
 
@@ -82,13 +77,13 @@ function applyFilters() {
 
   const filtered = allData.filter(item => {
 
-    const sheetDate =
+    const rowDate =
       formatDate(item.report_date);
 
     return (
 
       (!selectedDate ||
-       sheetDate === selectedDate)
+       rowDate === selectedDate)
 
       &&
 
@@ -114,58 +109,100 @@ function renderKPI(data) {
 
   const totalTeams = data.length;
 
-  let totalAI = 0;
+  let avgAI = 0;
 
   data.forEach(item => {
 
-    totalAI += Number(
+    avgAI += Number(
       item.ai_percentage || 0
     );
   });
 
-  const avgAI =
+  avgAI =
     totalTeams
-      ? Math.round(totalAI / totalTeams)
+      ? Math.round(avgAI / totalTeams)
       : 0;
 
   container.innerHTML = `
 
-    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+    ${createKPI(
+      "Teams",
+      totalTeams,
+      "👥"
+    )}
 
-      <p class="text-[11px] uppercase tracking-[3px] text-gray-400">
-        Total Teams
-      </p>
+    ${createKPI(
+      "AI Adoption",
+      avgAI + "%",
+      "🤖"
+    )}
 
-      <h2 class="text-3xl font-bold mt-2">
-        ${totalTeams}
-      </h2>
+    ${createKPI(
+      "Tasks",
+      countTasks(data),
+      "✅"
+    )}
 
-    </div>
+    ${createKPI(
+      "Report",
+      data[0]?.report_date || "-",
+      "📅"
+    )}
 
-    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+  `;
+}
 
-      <p class="text-[11px] uppercase tracking-[3px] text-gray-400">
-        Average AI Adoption
-      </p>
+function createKPI(title, value, icon) {
 
-      <h2 class="text-3xl font-bold mt-2 text-green-600">
-        ${avgAI}%
-      </h2>
+  return `
 
-    </div>
+    <div
+      class="bg-slate-900 border border-slate-800 rounded-3xl p-5"
+    >
 
-    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+      <div class="flex justify-between items-center">
 
-      <p class="text-[11px] uppercase tracking-[3px] text-gray-400">
-        Report Date
-      </p>
+        <div>
 
-      <h2 class="text-lg font-bold mt-2">
-        ${data[0]?.report_date || "-"}
-      </h2>
+          <p class="text-slate-400 text-xs uppercase tracking-[3px]">
+            ${title}
+          </p>
+
+          <h2 class="text-3xl font-bold mt-3">
+            ${value}
+          </h2>
+
+        </div>
+
+        <div class="text-3xl">
+          ${icon}
+        </div>
+
+      </div>
 
     </div>
   `;
+}
+
+function countTasks(data) {
+
+  let count = 0;
+
+  data.forEach(item => {
+
+    Object.keys(item).forEach(key => {
+
+      if (
+        key.startsWith("ai_work_")
+        &&
+        item[key]
+      ) {
+        count++;
+      }
+    });
+  });
+
+  return count;
 }
 
 function renderCards(data) {
@@ -179,9 +216,11 @@ function renderCards(data) {
 
     container.innerHTML = `
 
-      <div class="bg-white rounded-3xl p-10 text-center shadow-sm">
+      <div
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-16 text-center"
+      >
 
-        <h2 class="text-2xl font-bold">
+        <h2 class="text-3xl font-bold">
 
           No Report Found
 
@@ -198,17 +237,17 @@ function renderCards(data) {
     container.innerHTML += `
 
       <div
-        class="bg-white rounded-[28px] p-6 mb-5 shadow-sm border border-gray-100"
+        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-5"
       >
 
         <!-- HEADER -->
 
-        <div class="flex justify-between items-start">
+        <div class="flex justify-between gap-4 flex-wrap">
 
-          <div class="flex items-center gap-4">
+          <div class="flex gap-4">
 
             <div
-              class="w-11 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-lg"
+              class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-2xl"
             >
 
               ${item.icon}
@@ -217,13 +256,13 @@ function renderCards(data) {
 
             <div>
 
-              <h2 class="text-lg font-bold">
+              <h2 class="text-2xl font-bold">
 
                 ${item.team}
 
               </h2>
 
-              <p class="text-gray-400 text-xs">
+              <p class="text-slate-400 text-sm mt-1">
 
                 ${item.category}
 
@@ -233,31 +272,35 @@ function renderCards(data) {
 
           </div>
 
-          <div
-            class="bg-green-50 text-green-700 text-xs px-3 py-2 rounded-full font-semibold border border-green-100"
-          >
+          <div>
 
-            ${item.ai_percentage}% AI
+            <div
+              class="bg-cyan-500 text-black text-sm px-4 py-2 rounded-full font-bold"
+            >
+
+              ${item.ai_percentage}% AI
+
+            </div>
 
           </div>
 
         </div>
 
-        <!-- PROGRESS -->
+        <!-- BAR -->
 
-        <div class="mt-5">
+        <div class="mt-6">
 
           <div
-            class="flex justify-between text-[11px] font-semibold mb-2"
+            class="flex justify-between text-xs mb-2 font-semibold"
           >
 
-            <span class="text-green-600">
+            <span class="text-cyan-400">
 
               ${item.ai_percentage}% AI
 
             </span>
 
-            <span class="text-purple-600">
+            <span class="text-pink-400">
 
               ${item.manual_percentage}% Manual
 
@@ -266,16 +309,16 @@ function renderCards(data) {
           </div>
 
           <div
-            class="w-full bg-gray-200 rounded-full h-[10px] overflow-hidden flex"
+            class="w-full bg-slate-800 rounded-full h-3 overflow-hidden flex"
           >
 
             <div
-              class="bg-green-500 h-[10px]"
+              class="bg-cyan-400 h-3"
               style="width:${item.ai_percentage}%"
             ></div>
 
             <div
-              class="bg-purple-500 h-[10px]"
+              class="bg-pink-500 h-3"
               style="width:${item.manual_percentage}%"
             ></div>
 
@@ -283,55 +326,59 @@ function renderCards(data) {
 
         </div>
 
-        <!-- AI WORK -->
+        <!-- TASKS -->
 
-        <div class="mt-6">
+        <div class="grid md:grid-cols-2 gap-5 mt-7">
 
-          <h3
-            class="text-[11px] uppercase tracking-[3px] text-gray-400 font-bold"
-          >
+          <!-- AI TASK -->
 
-            AI Work
+          <div>
 
-          </h3>
+            <h3
+              class="text-xs uppercase tracking-[3px] text-cyan-400 font-bold mb-4"
+            >
 
-          <ul class="mt-3 space-y-2">
+              AI Tasks
 
-            ${generateDynamicList(item, "ai_work_")}
+            </h3>
 
-          </ul>
+            <div class="space-y-3">
 
-        </div>
+              ${generateTasks(item, "ai_work_")}
 
-        <!-- MANUAL -->
+            </div>
 
-        <div class="mt-6">
+          </div>
 
-          <h3
-            class="text-[11px] uppercase tracking-[3px] text-gray-400 font-bold"
-          >
+          <!-- MANUAL -->
 
-            Why ${item.manual_percentage}% was manual
+          <div>
 
-          </h3>
+            <h3
+              class="text-xs uppercase tracking-[3px] text-pink-400 font-bold mb-4"
+            >
 
-          <ul class="mt-3 space-y-2">
+              Manual Tasks
 
-            ${generateDynamicList(item, "manual_work_")}
+            </h3>
 
-          </ul>
+            <div class="space-y-3">
+
+              ${generateTasks(item, "manual_work_")}
+
+            </div>
+
+          </div>
 
         </div>
 
         <!-- NOTE -->
 
         <div
-          class="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4"
+          class="mt-6 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-4"
         >
 
-          <p
-            class="text-yellow-700 text-sm leading-relaxed"
-          >
+          <p class="text-sm text-slate-300 leading-relaxed">
 
             💡 ${item.note}
 
@@ -344,7 +391,7 @@ function renderCards(data) {
   });
 }
 
-function generateDynamicList(item, prefix) {
+function generateTasks(item, prefix) {
 
   let html = "";
 
@@ -358,24 +405,32 @@ function generateDynamicList(item, prefix) {
 
       html += `
 
-        <li class="flex gap-3 text-sm leading-relaxed">
+        <div
+          class="bg-slate-800 rounded-2xl p-3 border border-slate-700"
+        >
 
-          <span class="text-green-600 mt-[1px]">
-            ✓
-          </span>
+          <div class="flex gap-3">
 
-          <span class="text-gray-700">
+            <div
+              class="w-6 h-6 rounded-full bg-cyan-500 text-black flex items-center justify-center text-xs font-bold"
+            >
 
-            ${item[key]}
+              ✓
 
-          </span>
+            </div>
 
-        </li>
+            <p class="text-sm leading-relaxed text-slate-200">
+
+              ${item[key]}
+
+            </p>
+
+          </div>
+
+        </div>
       `;
     }
   });
 
   return html;
 }
-
-loadData();
