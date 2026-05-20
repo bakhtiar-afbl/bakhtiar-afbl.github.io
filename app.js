@@ -5,65 +5,60 @@ let allData = [];
 
 async function loadData() {
 
-  const response = await fetch(SHEET_URL);
+  Papa.parse(SHEET_URL, {
 
-  const csv = await response.text();
+    download: true,
+    header: true,
 
-  const rows = csv.split("\n").slice(1);
+    complete: function(results) {
 
-  allData = rows.map(row => {
+      allData = results.data;
 
-    const cols = row.split(",");
+      populateTeams();
 
-    return {
-      report_date: cols[0],
-      team: cols[1],
-      title: cols[2],
-      summary: cols[3],
-      impact: cols[4],
-      status: cols[5],
-      owner: cols[6],
-      priority: cols[7],
-      metric_value: cols[8]
-    };
-
+      renderDashboard(allData);
+    }
   });
-
-  populateTeams();
-
-  renderDashboard(allData);
 }
 
 function populateTeams() {
 
-  const teams = [...new Set(allData.map(x => x.team))];
-
   const dropdown =
     document.getElementById("teamFilter");
 
+  const teams =
+    [...new Set(allData.map(x => x.team))];
+
   teams.forEach(team => {
 
-    dropdown.innerHTML +=
-      `<option value="${team}">${team}</option>`;
+    if (team) {
 
+      dropdown.innerHTML += `
+        <option value="${team}">
+          ${team}
+        </option>
+      `;
+    }
   });
 }
 
 function applyFilters() {
 
-  const team =
-    document.getElementById("teamFilter").value;
-
-  const date =
+  const selectedDate =
     document.getElementById("dateFilter").value;
+
+  const selectedTeam =
+    document.getElementById("teamFilter").value;
 
   const filtered = allData.filter(item => {
 
     return (
-      (!team || item.team === team) &&
-      (!date || item.report_date === date)
-    );
+      (!selectedDate ||
+       item.report_date === selectedDate) &&
 
+      (!selectedTeam ||
+       item.team === selectedTeam)
+    );
   });
 
   renderDashboard(filtered);
@@ -74,19 +69,63 @@ function renderDashboard(data) {
   renderKPI(data);
 
   renderCards(data);
-
-  renderChart(data);
 }
 
 function renderKPI(data) {
 
   const container =
-    document.getElementById("kpiCards");
+    document.getElementById("kpiContainer");
+
+  const totalTeams = data.length;
+
+  let totalAI = 0;
+
+  data.forEach(item => {
+
+    totalAI += Number(item.ai_percentage || 0);
+  });
+
+  const avgAI =
+    totalTeams
+      ? Math.round(totalAI / totalTeams)
+      : 0;
 
   container.innerHTML = `
-    <div class="bg-gray-900 p-4 rounded">
-      <h2 class="text-xl">Total Tasks</h2>
-      <p class="text-3xl font-bold">${data.length}</p>
+
+    <div class="bg-white rounded-2xl p-6 shadow">
+
+      <p class="text-gray-500">
+        Total Teams
+      </p>
+
+      <h2 class="text-4xl font-bold mt-2">
+        ${totalTeams}
+      </h2>
+
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 shadow">
+
+      <p class="text-gray-500">
+        Average AI Adoption
+      </p>
+
+      <h2 class="text-4xl font-bold mt-2 text-green-600">
+        ${avgAI}%
+      </h2>
+
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 shadow">
+
+      <p class="text-gray-500">
+        Report Date
+      </p>
+
+      <h2 class="text-2xl font-bold mt-2">
+        ${data[0]?.report_date || "-"}
+      </h2>
+
     </div>
   `;
 }
@@ -101,31 +140,116 @@ function renderCards(data) {
   data.forEach(item => {
 
     container.innerHTML += `
-      <div class="bg-gray-900 p-6 rounded mb-4">
 
-        <div class="flex justify-between">
+      <div class="bg-white rounded-3xl p-8 mb-8 shadow">
 
-          <h2 class="text-2xl font-bold">
-            ${item.title}
-          </h2>
+        <!-- HEADER -->
 
-          <span class="text-sm">
-            ${item.team}
-          </span>
+        <div class="flex justify-between items-center">
+
+          <div class="flex items-center gap-4">
+
+            <div
+              class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-2xl"
+            >
+              ${item.icon}
+            </div>
+
+            <div>
+
+              <h2 class="text-2xl font-bold">
+                ${item.team}
+              </h2>
+
+              <p class="text-gray-500">
+                ${item.category}
+              </p>
+
+            </div>
+
+          </div>
+
+          <div
+            class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold"
+          >
+            ${item.ai_percentage}% AI
+          </div>
 
         </div>
 
-        <p class="mt-4 text-gray-300">
-          ${item.summary}
-        </p>
+        <!-- PROGRESS -->
 
-        <div class="mt-4">
+        <div class="mt-6">
 
-          <p><b>Impact:</b> ${item.impact}</p>
+          <div class="flex justify-between text-sm mb-2">
 
-          <p><b>Status:</b> ${item.status}</p>
+            <span class="text-green-600 font-semibold">
+              ${item.ai_percentage}% AI
+            </span>
 
-          <p><b>Owner:</b> ${item.owner}</p>
+            <span class="text-purple-600 font-semibold">
+              ${item.manual_percentage}% Manual
+            </span>
+
+          </div>
+
+          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
+
+            <div
+              class="bg-green-500 h-4"
+              style="width:${item.ai_percentage}%"
+            ></div>
+
+            <div
+              class="bg-purple-500 h-4"
+              style="width:${item.manual_percentage}%"
+            ></div>
+
+          </div>
+
+        </div>
+
+        <!-- AI WORK -->
+
+        <div class="mt-8">
+
+          <h3 class="uppercase text-sm tracking-widest text-gray-400 font-bold">
+            AI Work
+          </h3>
+
+          <ul class="mt-4 space-y-2">
+
+            ${generateList(item, "ai_work")}
+
+          </ul>
+
+        </div>
+
+        <!-- MANUAL -->
+
+        <div class="mt-8">
+
+          <h3 class="uppercase text-sm tracking-widest text-gray-400 font-bold">
+            Why ${item.manual_percentage}% was manual
+          </h3>
+
+          <ul class="mt-4 space-y-2">
+
+            ${generateList(item, "manual_work")}
+
+          </ul>
+
+        </div>
+
+        <!-- NOTE -->
+
+        <div
+          class="mt-8 bg-yellow-50 border border-yellow-300 rounded-2xl p-5"
+        >
+
+          <p class="text-yellow-700">
+            💡 ${item.note}
+          </p>
 
         </div>
 
@@ -134,36 +258,33 @@ function renderCards(data) {
   });
 }
 
-function renderChart(data) {
+function generateList(item, prefix) {
 
-  const ctx =
-    document.getElementById("teamChart");
+  let html = "";
 
-  const teamCount = {};
+  for (let i = 1; i <= 3; i++) {
 
-  data.forEach(item => {
+    const value = item[`${prefix}_${i}`];
 
-    if (!teamCount[item.team]) {
-      teamCount[item.team] = 0;
+    if (value) {
+
+      html += `
+        <li class="flex items-start gap-3">
+
+          <span class="text-green-600 mt-1">
+            ✓
+          </span>
+
+          <span>
+            ${value}
+          </span>
+
+        </li>
+      `;
     }
+  }
 
-    teamCount[item.team]++;
-  });
-
-  new Chart(ctx, {
-
-    type: "bar",
-
-    data: {
-
-      labels: Object.keys(teamCount),
-
-      datasets: [{
-        label: "Tasks",
-        data: Object.values(teamCount)
-      }]
-    }
-  });
+  return html;
 }
 
 loadData();
