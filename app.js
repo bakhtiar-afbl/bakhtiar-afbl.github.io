@@ -8,7 +8,10 @@ async function loadData() {
   Papa.parse(SHEET_URL, {
 
     download: true,
+
     header: true,
+
+    skipEmptyLines: true,
 
     complete: function(results) {
 
@@ -18,16 +21,28 @@ async function loadData() {
 
       populateTeams();
 
-      const today =
-        new Date().toISOString().split("T")[0];
-
-      document.getElementById(
-        "dateFilter"
-      ).value = today;
+      renderInitialDate();
 
       applyFilters();
     }
   });
+}
+
+function renderInitialDate() {
+
+  const uniqueDates =
+    [...new Set(
+      allData.map(x => x.report_date)
+    )];
+
+  if (uniqueDates.length > 0) {
+
+    document.getElementById(
+      "dateFilter"
+    ).value = formatDate(
+      uniqueDates[0]
+    );
+  }
 }
 
 function populateTeams() {
@@ -115,9 +130,9 @@ function renderKPI(data) {
 
   container.innerHTML = `
 
-    <div class="bg-white rounded-2xl p-5 shadow-sm">
+    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
 
-      <p class="text-xs uppercase tracking-wider text-gray-400">
+      <p class="text-[11px] uppercase tracking-[3px] text-gray-400">
         Total Teams
       </p>
 
@@ -127,10 +142,10 @@ function renderKPI(data) {
 
     </div>
 
-    <div class="bg-white rounded-2xl p-5 shadow-sm">
+    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
 
-      <p class="text-xs uppercase tracking-wider text-gray-400">
-        Average AI
+      <p class="text-[11px] uppercase tracking-[3px] text-gray-400">
+        Average AI Adoption
       </p>
 
       <h2 class="text-3xl font-bold mt-2 text-green-600">
@@ -139,13 +154,13 @@ function renderKPI(data) {
 
     </div>
 
-    <div class="bg-white rounded-2xl p-5 shadow-sm">
+    <div class="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
 
-      <p class="text-xs uppercase tracking-wider text-gray-400">
+      <p class="text-[11px] uppercase tracking-[3px] text-gray-400">
         Report Date
       </p>
 
-      <h2 class="text-xl font-bold mt-2">
+      <h2 class="text-lg font-bold mt-2">
         ${data[0]?.report_date || "-"}
       </h2>
 
@@ -172,12 +187,6 @@ function renderCards(data) {
 
         </h2>
 
-        <p class="text-gray-500 mt-3">
-
-          Please select another date or team.
-
-        </p>
-
       </div>
     `;
 
@@ -188,7 +197,9 @@ function renderCards(data) {
 
     container.innerHTML += `
 
-      <div class="bg-white rounded-3xl p-6 mb-6 shadow-sm">
+      <div
+        class="bg-white rounded-[28px] p-6 mb-5 shadow-sm border border-gray-100"
+      >
 
         <!-- HEADER -->
 
@@ -197,7 +208,7 @@ function renderCards(data) {
           <div class="flex items-center gap-4">
 
             <div
-              class="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-xl"
+              class="w-11 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-lg"
             >
 
               ${item.icon}
@@ -206,13 +217,13 @@ function renderCards(data) {
 
             <div>
 
-              <h2 class="text-xl font-bold">
+              <h2 class="text-lg font-bold">
 
                 ${item.team}
 
               </h2>
 
-              <p class="text-gray-400 text-sm">
+              <p class="text-gray-400 text-xs">
 
                 ${item.category}
 
@@ -223,7 +234,7 @@ function renderCards(data) {
           </div>
 
           <div
-            class="bg-green-100 text-green-700 text-xs px-3 py-2 rounded-full font-semibold"
+            class="bg-green-50 text-green-700 text-xs px-3 py-2 rounded-full font-semibold border border-green-100"
           >
 
             ${item.ai_percentage}% AI
@@ -236,7 +247,9 @@ function renderCards(data) {
 
         <div class="mt-5">
 
-          <div class="flex justify-between text-xs font-semibold mb-2">
+          <div
+            class="flex justify-between text-[11px] font-semibold mb-2"
+          >
 
             <span class="text-green-600">
 
@@ -253,16 +266,16 @@ function renderCards(data) {
           </div>
 
           <div
-            class="w-full bg-gray-200 rounded-full h-3 overflow-hidden flex"
+            class="w-full bg-gray-200 rounded-full h-[10px] overflow-hidden flex"
           >
 
             <div
-              class="bg-green-500 h-3"
+              class="bg-green-500 h-[10px]"
               style="width:${item.ai_percentage}%"
             ></div>
 
             <div
-              class="bg-purple-500 h-3"
+              class="bg-purple-500 h-[10px]"
               style="width:${item.manual_percentage}%"
             ></div>
 
@@ -275,7 +288,7 @@ function renderCards(data) {
         <div class="mt-6">
 
           <h3
-            class="text-xs uppercase tracking-[3px] text-gray-400 font-bold"
+            class="text-[11px] uppercase tracking-[3px] text-gray-400 font-bold"
           >
 
             AI Work
@@ -284,7 +297,7 @@ function renderCards(data) {
 
           <ul class="mt-3 space-y-2">
 
-            ${generateList(item, "ai_work")}
+            ${generateDynamicList(item, "ai_work_")}
 
           </ul>
 
@@ -295,7 +308,7 @@ function renderCards(data) {
         <div class="mt-6">
 
           <h3
-            class="text-xs uppercase tracking-[3px] text-gray-400 font-bold"
+            class="text-[11px] uppercase tracking-[3px] text-gray-400 font-bold"
           >
 
             Why ${item.manual_percentage}% was manual
@@ -304,7 +317,7 @@ function renderCards(data) {
 
           <ul class="mt-3 space-y-2">
 
-            ${generateList(item, "manual_work")}
+            ${generateDynamicList(item, "manual_work_")}
 
           </ul>
 
@@ -316,7 +329,9 @@ function renderCards(data) {
           class="mt-6 bg-yellow-50 border border-yellow-200 rounded-2xl p-4"
         >
 
-          <p class="text-yellow-700 text-sm leading-relaxed">
+          <p
+            class="text-yellow-700 text-sm leading-relaxed"
+          >
 
             💡 ${item.note}
 
@@ -329,37 +344,36 @@ function renderCards(data) {
   });
 }
 
-function generateList(item, prefix) {
+function generateDynamicList(item, prefix) {
 
   let html = "";
 
-  for (let i = 1; i <= 3; i++) {
+  Object.keys(item).forEach(key => {
 
-    const value =
-      item[`${prefix}_${i}`];
-
-    if (value) {
+    if (
+      key.startsWith(prefix)
+      &&
+      item[key]
+    ) {
 
       html += `
 
-        <li class="flex gap-3 text-sm">
+        <li class="flex gap-3 text-sm leading-relaxed">
 
-          <span class="text-green-600">
-
+          <span class="text-green-600 mt-[1px]">
             ✓
-
           </span>
 
-          <span>
+          <span class="text-gray-700">
 
-            ${value}
+            ${item[key]}
 
           </span>
 
         </li>
       `;
     }
-  }
+  });
 
   return html;
 }
