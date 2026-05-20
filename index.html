@@ -3,16 +3,26 @@
 
 <head>
 
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
 
-  <title>AI Adoption Dashboard</title>
+  <title>
+    AI Adoption Dashboard
+  </title>
+
+  <!-- Tailwind -->
 
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- PapaParse -->
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <!-- Font -->
 
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
@@ -23,47 +33,51 @@
 
     body {
       font-family: 'Inter', sans-serif;
+      background: #071226;
+      color: white;
     }
 
-    .glass {
-      backdrop-filter: blur(10px);
+    .card-bg {
+      background: #0b1730;
     }
 
   </style>
 
 </head>
 
-<body class="bg-[#0f172a] min-h-screen text-white">
+<body>
 
   <!-- HERO -->
 
   <section class="border-b border-white/10">
 
-    <div class="max-w-6xl mx-auto px-4 py-10">
+    <div class="max-w-5xl mx-auto px-4 py-8">
 
-      <div class="flex items-center justify-between flex-wrap gap-4">
+      <div class="text-center">
 
-        <div>
+        <p
+          class="uppercase tracking-[6px] text-[11px] text-cyan-400"
+        >
 
-          <p class="uppercase tracking-[5px] text-xs text-cyan-400">
+          DAILY REPORT
 
-            AI DAILY REPORT
+        </p>
 
-          </p>
+        <h1
+          class="text-3xl md:text-5xl font-bold mt-4"
+        >
 
-          <h1 class="text-3xl md:text-5xl font-extrabold mt-3">
+          Team AI Adoption Dashboard
 
-            Team AI Adoption Dashboard
+        </h1>
 
-          </h1>
+        <p
+          class="text-slate-400 text-sm mt-4"
+        >
 
-          <p class="text-slate-400 mt-3 text-sm">
+          Live operational AI activity monitoring
 
-            Live operational AI activity monitoring
-
-          </p>
-
-        </div>
+        </p>
 
       </div>
 
@@ -73,19 +87,19 @@
 
   <!-- FILTER -->
 
-  <section class="max-w-6xl mx-auto px-4 mt-6">
+  <section class="max-w-5xl mx-auto px-4 mt-6">
 
     <div class="grid md:grid-cols-3 gap-3">
 
       <input
         type="date"
         id="dateFilter"
-        class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
+        class="card-bg border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
       >
 
       <select
         id="teamFilter"
-        class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
+        class="card-bg border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
       >
 
         <option value="">
@@ -96,7 +110,7 @@
 
       <button
         onclick="applyFilters()"
-        class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl py-3 transition"
+        class="bg-cyan-500 hover:bg-cyan-400 text-black rounded-2xl py-3 text-sm font-bold transition"
       >
 
         Generate Report
@@ -111,17 +125,17 @@
 
   <section
     id="kpiContainer"
-    class="max-w-6xl mx-auto px-4 mt-5 grid md:grid-cols-4 gap-4"
+    class="max-w-5xl mx-auto px-4 mt-5 grid md:grid-cols-4 gap-3"
   ></section>
 
   <!-- REPORT -->
 
   <section
     id="reportContainer"
-    class="max-w-6xl mx-auto px-4 mt-6 pb-20"
+    class="max-w-5xl mx-auto px-4 mt-5 pb-20"
   ></section>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=10"></script>
 
 </body>
 
