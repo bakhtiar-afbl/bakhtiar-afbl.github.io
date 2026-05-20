@@ -15,11 +15,6 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
-  >
-
-  <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   >
@@ -30,39 +25,47 @@
       font-family: 'Inter', sans-serif;
     }
 
+    .glass {
+      backdrop-filter: blur(10px);
+    }
+
   </style>
 
 </head>
 
-<body class="bg-[#f3f1ed] text-gray-800">
+<body class="bg-[#0f172a] min-h-screen text-white">
 
   <!-- HERO -->
 
-  <section class="bg-black text-white py-10">
+  <section class="border-b border-white/10">
 
-    <div class="max-w-4xl mx-auto px-4 text-center">
+    <div class="max-w-6xl mx-auto px-4 py-10">
 
-      <p
-        class="uppercase tracking-[6px] text-gray-400 text-[11px]"
-      >
+      <div class="flex items-center justify-between flex-wrap gap-4">
 
-        Daily Report
+        <div>
 
-      </p>
+          <p class="uppercase tracking-[5px] text-xs text-cyan-400">
 
-      <h1
-        class="text-3xl md:text-5xl font-extrabold mt-5 leading-tight"
-      >
+            AI DAILY REPORT
 
-        Team wise AI Adoption Performance
+          </p>
 
-      </h1>
+          <h1 class="text-3xl md:text-5xl font-extrabold mt-3">
 
-      <p class="mt-4 text-gray-400 text-sm">
+            Team AI Adoption Dashboard
 
-        How each team is integrating AI into daily work
+          </h1>
 
-      </p>
+          <p class="text-slate-400 mt-3 text-sm">
+
+            Live operational AI activity monitoring
+
+          </p>
+
+        </div>
+
+      </div>
 
     </div>
 
@@ -70,19 +73,19 @@
 
   <!-- FILTER -->
 
-  <section class="max-w-4xl mx-auto px-4 mt-7">
+  <section class="max-w-6xl mx-auto px-4 mt-6">
 
     <div class="grid md:grid-cols-3 gap-3">
 
       <input
         type="date"
         id="dateFilter"
-        class="bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm outline-none shadow-sm"
+        class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
       >
 
       <select
         id="teamFilter"
-        class="bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm outline-none shadow-sm"
+        class="bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none"
       >
 
         <option value="">
@@ -93,7 +96,7 @@
 
       <button
         onclick="applyFilters()"
-        class="bg-black text-white rounded-2xl py-3 text-sm font-semibold hover:bg-gray-900 transition"
+        class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-2xl py-3 transition"
       >
 
         Generate Report
@@ -108,14 +111,14 @@
 
   <section
     id="kpiContainer"
-    class="max-w-4xl mx-auto px-4 mt-5 grid md:grid-cols-3 gap-3"
+    class="max-w-6xl mx-auto px-4 mt-5 grid md:grid-cols-4 gap-4"
   ></section>
 
   <!-- REPORT -->
 
   <section
     id="reportContainer"
-    class="max-w-4xl mx-auto px-4 mt-7 pb-20"
+    class="max-w-6xl mx-auto px-4 mt-6 pb-20"
   ></section>
 
   <script src="app.js"></script>
