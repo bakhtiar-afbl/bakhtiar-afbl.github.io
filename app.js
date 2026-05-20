@@ -3,47 +3,42 @@ const SHEET_URL =
 
 let allData = [];
 
-Papa.parse(SHEET_URL, {
+async function loadData() {
 
-  download: true,
+  Papa.parse(
+    SHEET_URL + "&t=" + new Date().getTime(),
 
-  header: true,
+    {
 
-  skipEmptyLines: true,
+      download: true,
 
-  complete: function(results) {
+      header: true,
 
-    allData = results.data.filter(
-      x => x.team
-    );
+      skipEmptyLines: true,
 
-    populateTeams();
+      complete: function(results) {
 
-    setDefaultDate();
+        allData = results.data.filter(
+          x => x.team
+        );
 
-    applyFilters();
-  }
-});
+        populateTeams();
 
-function setDefaultDate() {
+        setLatestDate();
 
-  const dates =
-    [...new Set(
-      allData.map(x => x.report_date)
-    )];
-
-  if (dates.length > 0) {
-
-    document.getElementById(
-      "dateFilter"
-    ).value = formatDate(dates[0]);
-  }
+        applyFilters();
+      }
+    }
+  );
 }
 
 function populateTeams() {
 
   const dropdown =
     document.getElementById("teamFilter");
+
+  dropdown.innerHTML =
+    `<option value="">All Teams</option>`;
 
   const teams =
     [...new Set(allData.map(x => x.team))];
@@ -56,6 +51,23 @@ function populateTeams() {
       </option>
     `;
   });
+}
+
+function setLatestDate() {
+
+  const dates =
+    [...new Set(
+      allData.map(x => x.report_date)
+    )]
+    .sort()
+    .reverse();
+
+  if (dates.length > 0) {
+
+    document.getElementById(
+      "dateFilter"
+    ).value = formatDate(dates[0]);
+  }
 }
 
 function formatDate(dateString) {
@@ -109,18 +121,18 @@ function renderKPI(data) {
 
   const totalTeams = data.length;
 
-  let avgAI = 0;
+  let totalAI = 0;
 
   data.forEach(item => {
 
-    avgAI += Number(
+    totalAI += Number(
       item.ai_percentage || 0
     );
   });
 
-  avgAI =
+  const avgAI =
     totalTeams
-      ? Math.round(avgAI / totalTeams)
+      ? Math.round(totalAI / totalTeams)
       : 0;
 
   container.innerHTML = `
@@ -144,7 +156,7 @@ function renderKPI(data) {
     )}
 
     ${createKPI(
-      "Report",
+      "Date",
       data[0]?.report_date || "-",
       "📅"
     )}
@@ -157,24 +169,32 @@ function createKPI(title, value, icon) {
   return `
 
     <div
-      class="bg-slate-900 border border-slate-800 rounded-3xl p-5"
+      class="card-bg border border-slate-800 rounded-2xl p-4"
     >
 
       <div class="flex justify-between items-center">
 
         <div>
 
-          <p class="text-slate-400 text-xs uppercase tracking-[3px]">
+          <p
+            class="text-[10px] uppercase tracking-[4px] text-slate-400"
+          >
+
             ${title}
+
           </p>
 
-          <h2 class="text-3xl font-bold mt-3">
+          <h2
+            class="text-2xl font-bold mt-2"
+          >
+
             ${value}
+
           </h2>
 
         </div>
 
-        <div class="text-3xl">
+        <div class="text-2xl">
           ${icon}
         </div>
 
@@ -217,16 +237,17 @@ function renderCards(data) {
     container.innerHTML = `
 
       <div
-        class="bg-slate-900 border border-slate-800 rounded-3xl p-16 text-center"
+        class="card-bg rounded-2xl p-10 text-center border border-slate-800"
       >
 
-        <h2 class="text-3xl font-bold">
+        <h2 class="text-2xl font-bold">
 
           No Report Found
 
         </h2>
 
       </div>
+
     `;
 
     return;
@@ -237,17 +258,21 @@ function renderCards(data) {
     container.innerHTML += `
 
       <div
-        class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-5"
+        class="card-bg border border-slate-800 rounded-2xl p-4 mb-4"
       >
 
         <!-- HEADER -->
 
-        <div class="flex justify-between gap-4 flex-wrap">
+        <div
+          class="flex justify-between items-start"
+        >
 
-          <div class="flex gap-4">
+          <div
+            class="flex items-center gap-3"
+          >
 
             <div
-              class="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-2xl"
+              class="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-lg"
             >
 
               ${item.icon}
@@ -256,13 +281,17 @@ function renderCards(data) {
 
             <div>
 
-              <h2 class="text-2xl font-bold">
+              <h2
+                class="text-xl font-bold"
+              >
 
                 ${item.team}
 
               </h2>
 
-              <p class="text-slate-400 text-sm mt-1">
+              <p
+                class="text-slate-400 text-xs mt-1"
+              >
 
                 ${item.category}
 
@@ -272,15 +301,11 @@ function renderCards(data) {
 
           </div>
 
-          <div>
+          <div
+            class="bg-cyan-500 text-black text-xs px-3 py-1.5 rounded-full font-semibold"
+          >
 
-            <div
-              class="bg-cyan-500 text-black text-sm px-4 py-2 rounded-full font-bold"
-            >
-
-              ${item.ai_percentage}% AI
-
-            </div>
+            ${item.ai_percentage}% AI
 
           </div>
 
@@ -288,10 +313,10 @@ function renderCards(data) {
 
         <!-- BAR -->
 
-        <div class="mt-6">
+        <div class="mt-5">
 
           <div
-            class="flex justify-between text-xs mb-2 font-semibold"
+            class="flex justify-between text-[11px] mb-2 font-semibold"
           >
 
             <span class="text-cyan-400">
@@ -309,16 +334,16 @@ function renderCards(data) {
           </div>
 
           <div
-            class="w-full bg-slate-800 rounded-full h-3 overflow-hidden flex"
+            class="w-full bg-slate-800 rounded-full h-2 overflow-hidden flex"
           >
 
             <div
-              class="bg-cyan-400 h-3"
+              class="bg-cyan-400 h-2"
               style="width:${item.ai_percentage}%"
             ></div>
 
             <div
-              class="bg-pink-500 h-3"
+              class="bg-pink-500 h-2"
               style="width:${item.manual_percentage}%"
             ></div>
 
@@ -328,23 +353,29 @@ function renderCards(data) {
 
         <!-- TASKS -->
 
-        <div class="grid md:grid-cols-2 gap-5 mt-7">
+        <div
+          class="grid md:grid-cols-2 gap-4 mt-5"
+        >
 
-          <!-- AI TASK -->
+          <!-- AI -->
 
           <div>
 
             <h3
-              class="text-xs uppercase tracking-[3px] text-cyan-400 font-bold mb-4"
+              class="text-[11px] uppercase tracking-[3px] text-cyan-400 font-bold mb-3"
             >
 
               AI Tasks
 
             </h3>
 
-            <div class="space-y-3">
+            <div class="space-y-2">
 
-              ${generateTasks(item, "ai_work_")}
+              ${generateTasks(
+                item,
+                "ai_work_",
+                "cyan"
+              )}
 
             </div>
 
@@ -355,16 +386,20 @@ function renderCards(data) {
           <div>
 
             <h3
-              class="text-xs uppercase tracking-[3px] text-pink-400 font-bold mb-4"
+              class="text-[11px] uppercase tracking-[3px] text-pink-400 font-bold mb-3"
             >
 
               Manual Tasks
 
             </h3>
 
-            <div class="space-y-3">
+            <div class="space-y-2">
 
-              ${generateTasks(item, "manual_work_")}
+              ${generateTasks(
+                item,
+                "manual_work_",
+                "pink"
+              )}
 
             </div>
 
@@ -375,10 +410,12 @@ function renderCards(data) {
         <!-- NOTE -->
 
         <div
-          class="mt-6 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl p-4"
+          class="mt-5 bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3"
         >
 
-          <p class="text-sm text-slate-300 leading-relaxed">
+          <p
+            class="text-[13px] text-slate-300 leading-relaxed"
+          >
 
             💡 ${item.note}
 
@@ -391,7 +428,11 @@ function renderCards(data) {
   });
 }
 
-function generateTasks(item, prefix) {
+function generateTasks(
+  item,
+  prefix,
+  color
+) {
 
   let html = "";
 
@@ -406,20 +447,31 @@ function generateTasks(item, prefix) {
       html += `
 
         <div
-          class="bg-slate-800 rounded-2xl p-3 border border-slate-700"
+          class="bg-slate-800 rounded-xl p-2.5 border border-slate-700"
         >
 
           <div class="flex gap-3">
 
             <div
-              class="w-6 h-6 rounded-full bg-cyan-500 text-black flex items-center justify-center text-xs font-bold"
+              class="
+              w-5 h-5 rounded-full
+              ${
+                color === "cyan"
+                ? "bg-cyan-400 text-black"
+                : "bg-pink-500 text-white"
+              }
+              flex items-center justify-center
+              text-[10px] font-bold
+              "
             >
 
               ✓
 
             </div>
 
-            <p class="text-sm leading-relaxed text-slate-200">
+            <p
+              class="text-[13px] leading-relaxed text-slate-200"
+            >
 
               ${item[key]}
 
@@ -428,9 +480,12 @@ function generateTasks(item, prefix) {
           </div>
 
         </div>
+
       `;
     }
   });
 
   return html;
 }
+
+loadData();
